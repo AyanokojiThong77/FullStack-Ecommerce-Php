@@ -12,6 +12,34 @@ if(isset($_SESSION['user_id'])){
 
 include 'components/wishlist_cart.php';
 
+// Lấy số trang hiện tại từ URL, nếu không có thì mặc định là trang 1
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$items_per_page = 9; // Số sản phẩm mỗi trang
+$offset = ($page - 1) * $items_per_page;
+
+// Lấy tùy chọn sắp xếp từ URL
+$sort_option = isset($_GET['sort_by']) ? $_GET['sort_by'] : 'default';
+$query = "SELECT * FROM `products`";
+
+// Thêm điều kiện sắp xếp vào truy vấn
+if($sort_option == 'price_asc'){
+    $query .= " ORDER BY price ASC";
+} elseif($sort_option == 'price_desc'){
+    $query .= " ORDER BY price DESC";
+} elseif($sort_option == 'name_asc'){
+    $query .= " ORDER BY name ASC";
+} elseif($sort_option == 'name_desc'){
+    $query .= " ORDER BY name DESC";
+} elseif($sort_option == 'newest'){
+    $query .= " ORDER BY created_at DESC"; // Sắp xếp theo ngày đăng mới nhất
+} elseif($sort_option == 'bestseller'){
+    $query .= " ORDER BY total_sales DESC"; // Sắp xếp theo sản phẩm bán chạy
+}
+
+$query .= " LIMIT $items_per_page OFFSET $offset"; // Phân trang
+
+$select_products = $conn->prepare($query); 
+$select_products->execute();
 ?>
 
 <!DOCTYPE html>
@@ -28,6 +56,30 @@ include 'components/wishlist_cart.php';
    <!-- custom css file link  -->
    <link rel="stylesheet" href="css/style.css">
 
+   <style>
+      /* Định dạng cho phân trang */
+      .pagination {
+         text-align: center;
+         margin-top: 20px;
+      }
+
+      .pagination .page-link {
+         display: inline-block;
+         margin: 0 5px;
+         padding: 10px 15px;
+         background-color: #f8f8f8;
+         border: 1px solid #ddd;
+         color: #333;
+         border-radius: 5px;
+         text-decoration: none;
+      }
+
+      .pagination .page-link:hover {
+         background-color: #ddd;
+      }
+
+   </style>
+
 </head>
 <body>
    
@@ -40,37 +92,20 @@ include 'components/wishlist_cart.php';
    <!-- Form sắp xếp -->
    <form action="" method="GET" class="sort-form">
       <select name="sort_by" onchange="this.form.submit()">
-         <option value="default" <?php if(isset($_GET['sort_by']) && $_GET['sort_by'] == 'default'){ echo 'selected'; } ?>>Sắp xếp theo</option>
-         <option value="price_asc" <?php if(isset($_GET['sort_by']) && $_GET['sort_by'] == 'price_asc'){ echo 'selected'; } ?>>Giá: Thấp đến cao</option>
-         <option value="price_desc" <?php if(isset($_GET['sort_by']) && $_GET['sort_by'] == 'price_desc'){ echo 'selected'; } ?>>Giá: Cao đến thấp</option>
-         <option value="name_asc" <?php if(isset($_GET['sort_by']) && $_GET['sort_by'] == 'name_asc'){ echo 'selected'; } ?>>Tên: A-Z</option>
-         <option value="name_desc" <?php if(isset($_GET['sort_by']) && $_GET['sort_by'] == 'name_desc'){ echo 'selected'; } ?>>Tên: Z-A</option>
+         <option value="default" <?php if($sort_option == 'default'){ echo 'selected'; } ?>>Sắp xếp theo</option>
+         <option value="price_asc" <?php if($sort_option == 'price_asc'){ echo 'selected'; } ?>>Giá: Thấp đến cao</option>
+         <option value="price_desc" <?php if($sort_option == 'price_desc'){ echo 'selected'; } ?>>Giá: Cao đến thấp</option>
+         <option value="name_asc" <?php if($sort_option == 'name_asc'){ echo 'selected'; } ?>>Tên: A-Z</option>
+         <option value="name_desc" <?php if($sort_option == 'name_desc'){ echo 'selected'; } ?>>Tên: Z-A</option>
       </select>
    </form>
 
    <div class="box-container">
 
    <?php
-     // Thiết lập truy vấn SQL dựa trên lựa chọn sắp xếp
-     $sort_option = isset($_GET['sort_by']) ? $_GET['sort_by'] : 'default';
-     $query = "SELECT * FROM `products`";
-
-     if($sort_option == 'price_asc'){
-        $query .= " ORDER BY price ASC";
-     } elseif($sort_option == 'price_desc'){
-        $query .= " ORDER BY price DESC";
-     } elseif($sort_option == 'name_asc'){
-        $query .= " ORDER BY name ASC";
-     } elseif($sort_option == 'name_desc'){
-        $query .= " ORDER BY name DESC";
-     }
-
-     $select_products = $conn->prepare($query); 
-     $select_products->execute();
      if($select_products->rowCount() > 0){
       while($fetch_product = $select_products->fetch(PDO::FETCH_ASSOC)){
    ?>
-
    <form action="" method="post" class="box">
       <input type="hidden" name="pid" value="<?= $fetch_product['id']; ?>">
       <input type="hidden" name="name" value="<?= $fetch_product['name']; ?>">
@@ -93,6 +128,22 @@ include 'components/wishlist_cart.php';
    }
    ?>
 
+   </div>
+
+   <!-- Phân trang -->
+   <div class="pagination">
+   <?php
+      // Lấy tổng số sản phẩm để tính tổng số trang
+      $total_products_query = $conn->prepare("SELECT COUNT(*) FROM `products`");
+      $total_products_query->execute();
+      $total_products = $total_products_query->fetchColumn();
+      $total_pages = ceil($total_products / $items_per_page);
+
+      // Hiển thị các nút phân trang
+      for ($i = 1; $i <= $total_pages; $i++) {
+         echo '<a href="?page=' . $i . '&sort_by=' . $sort_option . '" class="page-link">' . $i . '</a>';
+      }
+   ?>
    </div>
 
 </section>

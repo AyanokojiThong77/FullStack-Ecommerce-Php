@@ -781,6 +781,7 @@ section{
    transition: 0.3s ease;
 }
 
+
 .sort-form select:hover {
    background-color: #e0e0e0;
 }
@@ -1080,3 +1081,4 @@ section{
    }
 
 }
+
