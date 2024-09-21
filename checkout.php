@@ -114,6 +114,7 @@ if(isset($_POST['order'])){
                <option value="credit card">Thẻ tín dụng</option>
                <option value="momo">Momo</option>
                <option value="paypal">Paypal</option>
+               <option value="Vnpay">Vnpay</option>
             </select>
          </div>
          <div class="inputBox">

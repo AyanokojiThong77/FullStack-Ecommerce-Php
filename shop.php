@@ -37,14 +37,40 @@ include 'components/wishlist_cart.php';
 
    <h1 class="heading">Sản phẩm mới nhất</h1>
 
+   <!-- Form sắp xếp -->
+   <form action="" method="GET" class="sort-form">
+      <select name="sort_by" onchange="this.form.submit()">
+         <option value="default" <?php if(isset($_GET['sort_by']) && $_GET['sort_by'] == 'default'){ echo 'selected'; } ?>>Sắp xếp theo</option>
+         <option value="price_asc" <?php if(isset($_GET['sort_by']) && $_GET['sort_by'] == 'price_asc'){ echo 'selected'; } ?>>Giá: Thấp đến cao</option>
+         <option value="price_desc" <?php if(isset($_GET['sort_by']) && $_GET['sort_by'] == 'price_desc'){ echo 'selected'; } ?>>Giá: Cao đến thấp</option>
+         <option value="name_asc" <?php if(isset($_GET['sort_by']) && $_GET['sort_by'] == 'name_asc'){ echo 'selected'; } ?>>Tên: A-Z</option>
+         <option value="name_desc" <?php if(isset($_GET['sort_by']) && $_GET['sort_by'] == 'name_desc'){ echo 'selected'; } ?>>Tên: Z-A</option>
+      </select>
+   </form>
+
    <div class="box-container">
 
    <?php
-     $select_products = $conn->prepare("SELECT * FROM `products`"); 
+     // Thiết lập truy vấn SQL dựa trên lựa chọn sắp xếp
+     $sort_option = isset($_GET['sort_by']) ? $_GET['sort_by'] : 'default';
+     $query = "SELECT * FROM `products`";
+
+     if($sort_option == 'price_asc'){
+        $query .= " ORDER BY price ASC";
+     } elseif($sort_option == 'price_desc'){
+        $query .= " ORDER BY price DESC";
+     } elseif($sort_option == 'name_asc'){
+        $query .= " ORDER BY name ASC";
+     } elseif($sort_option == 'name_desc'){
+        $query .= " ORDER BY name DESC";
+     }
+
+     $select_products = $conn->prepare($query); 
      $select_products->execute();
      if($select_products->rowCount() > 0){
       while($fetch_product = $select_products->fetch(PDO::FETCH_ASSOC)){
    ?>
+
    <form action="" method="post" class="box">
       <input type="hidden" name="pid" value="<?= $fetch_product['id']; ?>">
       <input type="hidden" name="name" value="<?= $fetch_product['name']; ?>">
