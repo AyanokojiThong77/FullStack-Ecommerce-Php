@@ -4,44 +4,58 @@ include 'components/connect.php';
 
 session_start();
 
-if(isset($_SESSION['user_id'])){
-   $user_id = $_SESSION['user_id'];
-}else{
-   $user_id = '';
-   header('location:user_login.php');
-   exit();
+if (isset($_SESSION['user_id'])) {
+    $user_id = $_SESSION['user_id'];
+} else {
+    $user_id = '';
+    header('location:user_login.php');
+    exit();
 }
 
-if(isset($_POST['order'])){
+if (isset($_POST['order'])) {
+    $name = filter_var($_POST['name'], FILTER_SANITIZE_STRING);
+    $number = filter_var($_POST['number'], FILTER_SANITIZE_STRING);
+    $email = filter_var($_POST['email'], FILTER_SANITIZE_STRING);
+    $method = filter_var($_POST['method'], FILTER_SANITIZE_STRING);
+    $address = 'Số nhà ' . $_POST['flat'] . ', ' . $_POST['street'] . ', ' . $_POST['city'] . ', ' . $_POST['state'] . ', ' . $_POST['country'] . ' - ' . $_POST['pin_code'];
+    $address = filter_var($address, FILTER_SANITIZE_STRING);
+    $total_products = $_POST['total_products'];
+    $total_price = $_POST['total_price'];
 
-   $name = filter_var($_POST['name'], FILTER_SANITIZE_STRING);
-   $number = filter_var($_POST['number'], FILTER_SANITIZE_STRING);
-   $email = filter_var($_POST['email'], FILTER_SANITIZE_STRING);
-   $method = filter_var($_POST['method'], FILTER_SANITIZE_STRING);
-   $address = 'Số nhà '. $_POST['flat'] .', '. $_POST['street'] .', '. $_POST['city'] .', '. $_POST['state'] .', '. $_POST['country'] .' - '. $_POST['pin_code'];
-   $address = filter_var($address, FILTER_SANITIZE_STRING);
-   $total_products = $_POST['total_products'];
-   $total_price = $_POST['total_price'];
+    $check_cart = $conn->prepare("SELECT * FROM `cart` WHERE user_id = ?");
+    $check_cart->execute([$user_id]);
 
-   $check_cart = $conn->prepare("SELECT * FROM `cart` WHERE user_id = ?");
-   $check_cart->execute([$user_id]);
+    if ($check_cart->rowCount() > 0) {
+        // If the payment method is MoMo
+        if ($method === 'momo') {
+            // Prepare payment data
+            $_SESSION['payment_data'] = [
+                'name' => $name,
+                'number' => $number,
+                'email' => $email,
+                'address' => $address,
+                'total_products' => $total_products,
+                'total_price' => $total_price
+            ];
+            // Redirect to MoMo payment processing page
+            header('location:init_payment.php');
+            exit();
+        } else {
+            // Insert order for other payment methods
+            $insert_order = $conn->prepare("INSERT INTO `orders` (user_id, name, number, email, method, address, total_products, total_price) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+            $insert_order->execute([$user_id, $name, $number, $email, $method, $address, $total_products, $total_price]);
 
-   if($check_cart->rowCount() > 0){
+            $delete_cart = $conn->prepare("DELETE FROM `cart` WHERE user_id = ?");
+            $delete_cart->execute([$user_id]);
 
-      $insert_order = $conn->prepare("INSERT INTO `orders` (user_id, name, number, email, method, address, total_products, total_price) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-      $insert_order->execute([$user_id, $name, $number, $email, $method, $address, $total_products, $total_price]);
-
-      $delete_cart = $conn->prepare("DELETE FROM `cart` WHERE user_id = ?");
-      $delete_cart->execute([$user_id]);
-
-      $message[] = 'Đặt hàng thành công!';
-   }else{
-      $message[] = 'Giỏ hàng của bạn đang trống!';
-   }
-
+            $message[] = 'Đặt hàng thành công!';
+        }
+    } else {
+        $message[] = 'Giỏ hàng của bạn đang trống!';
+    }
 }
-
 ?>
+
 
 <!DOCTYPE html>
 <html lang="vi">
