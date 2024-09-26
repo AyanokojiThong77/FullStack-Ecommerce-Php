@@ -129,11 +129,93 @@ if(!isset($admin_id)){
          <a href="messages.php" class="btn">Xem thông điệp</a>
       </div>
 
-   </div>
+      <div class="box" style="
+      width: 500px; height: 400px;
+    background-color: #f9f9f9; 
+    border-radius: 10px; 
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+    padding: 20px; 
+    margin: 15px; 
+    transition: transform 0.3s; 
+    text-align: center; 
+">
+    <h3>Doanh thu</h3>
+    <label for="timeFilter">Lọc theo:</label>
+    <select id="timeFilter">
+      <option value="day">Ngày</option>
+        <option value="weekly">Tuần</option>
+        <option value="monthly">Tháng</option>
+        <option value="quarterly">Quý</option>
+        <option value="yearly">Năm</option>
+    </select>
+    <canvas id="revenueChart" width="800" height="400"></canvas>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    const ctx = document.getElementById('revenueChart').getContext('2d');
+    let revenueChart;
+
+    function fetchRevenueData(filterType) {
+        $.ajax({
+            url: 'fetch_revenue.php', // Tạo file fetch_revenue.php
+            method: 'POST',
+            data: {
+                filter: filterType
+            },
+            dataType: 'json',
+            success: function(data) {
+                if (revenueChart) {
+                    revenueChart.destroy(); // Xóa biểu đồ cũ trước khi vẽ lại
+                }
+                revenueChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            label: 'Doanh thu',
+                            data: data.revenue,
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            },
+            error: function() {
+                alert('Lỗi khi lấy dữ liệu!');
+            }
+        });
+    }
+
+    $("#timeFilter").on('change', function() {
+        const filterType = $(this).val();
+        fetchRevenueData(filterType);
+    });
+
+    // Lấy doanh thu mặc định khi tải trang
+    $(document).ready(function() {
+        fetchRevenueData('monthly'); // Mặc định hiển thị doanh thu theo tháng
+    });
+</script>
+
+
+
 
 </section>
 
 <script src="../js/admin_script.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
    
 </body>
 </html>
