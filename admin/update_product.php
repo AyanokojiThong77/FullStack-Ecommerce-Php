@@ -39,7 +39,7 @@ if(isset($_POST['update'])){
          $update_image_01 = $conn->prepare("UPDATE `products` SET image_01 = ? WHERE id = ?");
          $update_image_01->execute([$image_01, $pid]);
          move_uploaded_file($image_tmp_name_01, $image_folder_01);
-         unlink('../uploaded_img/'.$old_image_01);
+         // unlink('../uploaded_img/'.$old_image_01);
          $message[] = 'image 01 updated successfully!';
       }
    }
@@ -58,7 +58,7 @@ if(isset($_POST['update'])){
          $update_image_02 = $conn->prepare("UPDATE `products` SET image_02 = ? WHERE id = ?");
          $update_image_02->execute([$image_02, $pid]);
          move_uploaded_file($image_tmp_name_02, $image_folder_02);
-         unlink('../uploaded_img/'.$old_image_02);
+         // unlink('../uploaded_img/'.$old_image_02);
          $message[] = 'image 02 updated successfully!';
       }
    }
@@ -77,7 +77,7 @@ if(isset($_POST['update'])){
          $update_image_03 = $conn->prepare("UPDATE `products` SET image_03 = ? WHERE id = ?");
          $update_image_03->execute([$image_03, $pid]);
          move_uploaded_file($image_tmp_name_03, $image_folder_03);
-         unlink('../uploaded_img/'.$old_image_03);
+         // unlink('../uploaded_img/'.$old_image_03);
          $message[] = 'image 03 updated successfully!';
       }
    }

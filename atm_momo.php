@@ -1,79 +1,79 @@
 <?php
 header('Content-type: text/html; charset=utf-8');
 
-function execPostRequest($url, $data) {
+
+function execPostRequest($url, $data)
+{
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
     curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-        'Content-Type: application/json',
-        'Content-Length: ' . strlen($data))
+            'Content-Type: application/json',
+            'Content-Length: ' . strlen($data))
     );
     curl_setopt($ch, CURLOPT_TIMEOUT, 5);
     curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
-    // Execute post
+    //execute post
     $result = curl_exec($ch);
-    // Close connection
+    //close connection
     curl_close($ch);
     return $result;
 }
 
+
 $endpoint = "https://test-payment.momo.vn/v2/gateway/api/create";
 
-$partnerCode = 'MOMOBKUN20180529';  // Your MoMo partner code
-$accessKey = 'klm05TvNBzhg7h7j';      // Your MoMo access key
-$secretKey = 'at67qH6mk8w5Y1nAyMoYKMWACiEi2bsa';  // Your MoMo secret key
 
-// Get payment data from session
-session_start();
-$payment_data = $_SESSION['payment_data'];
-$total_price = $payment_data['total_price'];
-
-// Prepare MoMo payment parameters
-$orderId = time() . "";  // Order ID (unique)
-$redirectUrl = "http://localhost:8080/Phamhuythong/succesful.php";  // URL after payment
-$ipnUrl = "http://localhost:8080/Phamhuythong/succesful.php";  // IPN URL for MoMo notifications
+$partnerCode = 'MOMOBKUN20180529';
+$accessKey = 'klm05TvNBzhg7h7j';
+$secretKey = 'at67qH6mk8w5Y1nAyMoYKMWACiEi2bsa';
 $orderInfo = "Thanh toán qua MoMo";
-$extraData = "";  // Optional extra data
-$amount = $total_price;  // Total amount
+$amount = "10000";
+$orderId = time() ."";
+$redirectUrl = "https://webhook.site/b3088a6a-2d17-4f8d-a383-71389a6c600b";
+$ipnUrl = "https://webhook.site/b3088a6a-2d17-4f8d-a383-71389a6c600b";
+$extraData = "";
 
-$requestId = time() . "";
-$requestType = "captureWallet";
 
-// Generate signature
-$rawHash = "accessKey=" . $accessKey . "&amount=" . $amount . "&extraData=" . $extraData . "&ipnUrl=" . $ipnUrl . "&orderId=" . $orderId . "&orderInfo=" . $orderInfo . "&partnerCode=" . $partnerCode . "&redirectUrl=" . $redirectUrl . "&requestId=" . $requestId . "&requestType=" . $requestType;
-$signature = hash_hmac("sha256", $rawHash, $secretKey);
+if (!empty($_POST)) {
+    $partnerCode = $_POST["partnerCode"];
+    $accessKey = $_POST["accessKey"];
+    $serectkey = $_POST["secretKey"];
+    $orderId = $_POST["orderId"]; // Mã đơn hàng
+    $orderInfo = $_POST["orderInfo"];
+    $amount = $_POST["amount"];
+    $ipnUrl = $_POST["ipnUrl"];
+    $redirectUrl = $_POST["redirectUrl"];
+    $extraData = $_POST["extraData"];
 
-// Prepare data for MoMo API
-$data = array(
-    'partnerCode' => $partnerCode,
-    'partnerName' => "Test",
-    "storeId" => "MomoTestStore",
-    'requestId' => $requestId,
-    'amount' => $amount,
-    'orderId' => $orderId,
-    'orderInfo' => $orderInfo,
-    'redirectUrl' => $redirectUrl,
-    'ipnUrl' => $ipnUrl,
-    'lang' => 'vi',
-    'extraData' => $extraData,
-    'requestType' => $requestType,
-    'signature' => $signature
-);
+    $requestId = time() . "";
+    $requestType = "payWithATM";
+    $extraData = ($_POST["extraData"] ? $_POST["extraData"] : "");
+    //before sign HMAC SHA256 signature
+    $rawHash = "accessKey=" . $accessKey . "&amount=" . $amount . "&extraData=" . $extraData . "&ipnUrl=" . $ipnUrl . "&orderId=" . $orderId . "&orderInfo=" . $orderInfo . "&partnerCode=" . $partnerCode . "&redirectUrl=" . $redirectUrl . "&requestId=" . $requestId . "&requestType=" . $requestType;
+    $signature = hash_hmac("sha256", $rawHash, $serectkey);
+    $data = array('partnerCode' => $partnerCode,
+        'partnerName' => "Test",
+        "storeId" => "MomoTestStore",
+        'requestId' => $requestId,
+        'amount' => $amount,
+        'orderId' => $orderId,
+        'orderInfo' => $orderInfo,
+        'redirectUrl' => $redirectUrl,
+        'ipnUrl' => $ipnUrl,
+        'lang' => 'vi',
+        'extraData' => $extraData,
+        'requestType' => $requestType,
+        'signature' => $signature);
+    $result = execPostRequest($endpoint, json_encode($data));
+    $jsonResult = json_decode($result, true);  // decode json
 
-// Execute the payment request
-$result = execPostRequest($endpoint, json_encode($data));
-$jsonResult = json_decode($result, true);  // Decode JSON response
+    //Just a example, please check more in there
 
-// Redirect to MoMo payment page
-if (isset($jsonResult['payUrl'])) {
     header('Location: ' . $jsonResult['payUrl']);
-} else {
-    echo 'Lỗi khi khởi tạo thanh toán!';
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -92,11 +92,11 @@ if (isset($jsonResult['payUrl'])) {
         <div class="col-12">
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <h3 class="panel-title">Initial payment/Khởi tạo thanh toán</h3>
+                    <h3 class="panel-title">Initial payment/Khởi tạo thanh toán ATM qua MoMo</h3>
                 </div>
                 <div class="panel-body">
                     <form class="" method="POST" target="_blank" enctype="application/x-www-form-urlencoded"
-                          action="init_payment.php">
+                          action="atm_momo.php">
                         <div class="row">
                             <div class="col-md-4">
                                 <div class="form-group">

@@ -53,7 +53,7 @@ if(!isset($admin_id)){
                }
             }
          ?>
-         <h3><span>$</span><?= $total_pendings; ?><span>/-</span></h3>
+         <h3><span>₫</span><?= number_format($total_pendings, 0, ',', '.'); ?><span>/-</span></h3>
          <p>Tổng tiền đang chờ xử lý</p>
          <a href="placed_orders.php" class="btn">Xem đơn hàng</a>
       </div>
@@ -69,7 +69,7 @@ if(!isset($admin_id)){
                }
             }
          ?>
-         <h3><span>$</span><?= $total_completes; ?><span>/-</span></h3>
+         <h3><span>₫</span><?= number_format($total_completes, 0, ',', '.'); ?><span>/-</span></h3>
          <p>Đơn hàng đã hoàn thành</p>
          <a href="placed_orders.php" class="btn">Xem đơn hàng</a>
       </div>
@@ -129,27 +129,132 @@ if(!isset($admin_id)){
          <a href="messages.php" class="btn">Xem thông điệp</a>
       </div>
 
-      <div class="box" style="
-      width: 500px; height: 400px;
+      <div style="
+    display: flex; 
+    flex-wrap: no-warp; 
+    justify-content: space-between; /* Adjusts space between the boxes */
+    margin: 15px; /* Adds margin around the flex container */
+">
+    <div class="box" style="
+        width: 500px; /* Fixed width for the revenue box */
+        height: 400px; 
+        background-color: #f9f9f9; 
+        border-radius: 10px; 
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+        padding: 20px; 
+        text-align: center; 
+        margin: 15px; /* Adds margin between the boxes */
+    ">
+        <h3>Doanh thu</h3>
+        <label for="timeFilter">Lọc theo:</label>
+        <select id="timeFilter">
+            <option value="daily">Ngày</option>
+            <option value="weekly">Tuần</option>
+            <option value="monthly">Tháng</option>
+            <option value="quarterly">Quý</option>
+            <option value="yearly">Năm</option>
+        </select>
+        <canvas id="revenueChart" width="800" height="400"></canvas>
+    </div>
+
+    <div class="box" style="
+        flex: 1 1 200px; /* Flexible box that takes up remaining space */
+        max-width: 200px; 
+        height: 400px; 
+        background-color: #f9f9f9; 
+        border-radius: 10px; 
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+        padding: 50px; 
+        text-align: center; 
+        margin: 15px; /* Adds margin between the boxes */
+    ">
+        <?php
+            // Truy vấn tất cả các đơn hàng đã hoàn thành từ bảng orders
+            $select_orders = $conn->prepare("SELECT total_products FROM `orders` WHERE payment_status = 'completed'");
+            $select_orders->execute();
+
+            // Tạo một mảng để lưu số lượng bán của từng sản phẩm
+            $product_sales = [];
+
+            // Duyệt qua từng đơn hàng để phân tích chuỗi sản phẩm
+            while ($fetch_order = $select_orders->fetch(PDO::FETCH_ASSOC)) {
+                // Lấy danh sách sản phẩm từ cột `total_products`
+                $products = explode(" - ", $fetch_order['total_products']);
+                
+                foreach ($products as $product) {
+                    if (!empty($product)) {
+                        // Tách chuỗi để lấy tên sản phẩm và số lượng
+                        preg_match('/(.+)\((\d+) x (\d+)\)/', $product, $matches);
+                        
+                        if (!empty($matches)) {
+                            $product_name = trim($matches[1]); // Lấy tên sản phẩm
+                            $quantity_sold = (int) $matches[3]; // Lấy số lượng đã bán
+
+                            // Cộng dồn số lượng sản phẩm vào mảng
+                            if (isset($product_sales[$product_name])) {
+                                $product_sales[$product_name] += $quantity_sold;
+                            } else {
+                                $product_sales[$product_name] = $quantity_sold;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Tìm sản phẩm có số lượng bán cao nhất
+            $best_selling_product = array_keys($product_sales, max($product_sales));
+        ?>
+        <h3><?= !empty($best_selling_product) ? $best_selling_product[0] : 'Chưa có'; ?></h3>
+        <p>Sản phẩm bán chạy nhất</p>
+    </div>
+
+    <div class="box" style="
+        flex: 1 1 200px; /* Flexible box that takes up remaining space */
+        max-width: 200px; 
+        height: 400px; 
+        background-color: #f9f9f9; 
+        border-radius: 10px; 
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+        padding: 50px; 
+        text-align: center; 
+        margin: 15px; /* Adds margin between the boxes */
+    ">
+        <?php
+            $select_top_user = $conn->prepare("
+                SELECT users.name, SUM(orders.total_price) AS total_spent 
+                FROM `orders` 
+                INNER JOIN `users` ON orders.user_id = users.id 
+                WHERE orders.payment_status = 'completed' 
+                GROUP BY orders.user_id 
+                ORDER BY total_spent DESC 
+                LIMIT 1
+            ");
+            $select_top_user->execute();
+            $top_user = $select_top_user->fetch(PDO::FETCH_ASSOC);
+        ?>
+        <h3><?= $top_user ? $top_user['name'] : 'Chưa có'; ?></h3>
+        <p>Người dùng mua hàng nhiều nhất</p>
+    </div>
+    <div class="box" style="
+    width: 500px; /* Fixed width for the product revenue box */
+    height: 500px; 
     background-color: #f9f9f9; 
     border-radius: 10px; 
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
     padding: 20px; 
-    margin: 15px; 
-    transition: transform 0.3s; 
     text-align: center; 
+    margin: 15px; /* Adds margin between the boxes */
 ">
-    <h3>Doanh thu</h3>
-    <label for="timeFilter">Lọc theo:</label>
-    <select id="timeFilter">
-      <option value="day">Ngày</option>
-        <option value="weekly">Tuần</option>
-        <option value="monthly">Tháng</option>
-        <option value="quarterly">Quý</option>
-        <option value="yearly">Năm</option>
-    </select>
-    <canvas id="revenueChart" width="800" height="400"></canvas>
+    <h3>Doanh thu theo sản phẩm</h3>
+    <canvas id="productRevenueChart" width="400" height="400"></canvas>
 </div>
+</div>
+
+
+
+
+
+
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -208,7 +313,72 @@ if(!isset($admin_id)){
     });
 </script>
 
+<script>
+    const productCtx = document.getElementById('productRevenueChart').getContext('2d');
+let productRevenueChart;
 
+function fetchProductRevenueData() {
+    $.ajax({
+        url: 'fetch_product_revenue.php', // Tạo file fetch_product_revenue.php
+        method: 'POST',
+        dataType: 'json',
+        success: function(data) {
+            if (productRevenueChart) {
+                productRevenueChart.destroy(); // Xóa biểu đồ cũ trước khi vẽ lại
+            }
+            productRevenueChart = new Chart(productCtx, {
+                type: 'pie', // Loại biểu đồ là hình tròn
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Doanh thu theo sản phẩm',
+                        data: data.revenue,
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.2)',
+                            'rgba(54, 162, 235, 0.2)',
+                            'rgba(255, 206, 86, 0.2)',
+                            'rgba(75, 192, 192, 0.2)',
+                            'rgba(153, 102, 255, 0.2)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(153, 102, 255, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(tooltipItem) {
+                                    return tooltipItem.label + ': $' + tooltipItem.raw; // Hiển thị giá trị doanh thu trong tooltip
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        },
+        error: function() {
+            alert('Lỗi khi lấy dữ liệu doanh thu theo sản phẩm!');
+        }
+    });
+}
+
+// Gọi hàm để lấy dữ liệu doanh thu theo sản phẩm khi tải trang
+$(document).ready(function() {
+    fetchProductRevenueData(); // Lấy doanh thu theo sản phẩm
+});
+
+</script>
 
 
 </section>

@@ -4,58 +4,142 @@ include 'components/connect.php';
 
 session_start();
 
-if (isset($_SESSION['user_id'])) {
-    $user_id = $_SESSION['user_id'];
-} else {
-    $user_id = '';
+if (!isset($_SESSION['user_id'])) {
     header('location:user_login.php');
     exit();
 }
 
-if (isset($_POST['order'])) {
-    $name = filter_var($_POST['name'], FILTER_SANITIZE_STRING);
-    $number = filter_var($_POST['number'], FILTER_SANITIZE_STRING);
-    $email = filter_var($_POST['email'], FILTER_SANITIZE_STRING);
-    $method = filter_var($_POST['method'], FILTER_SANITIZE_STRING);
-    $address = 'Số nhà ' . $_POST['flat'] . ', ' . $_POST['street'] . ', ' . $_POST['city'] . ', ' . $_POST['state'] . ', ' . $_POST['country'] . ' - ' . $_POST['pin_code'];
-    $address = filter_var($address, FILTER_SANITIZE_STRING);
-    $total_products = $_POST['total_products'];
-    $total_price = $_POST['total_price'];
+$user_id = $_SESSION['user_id'];
+$message = [];
 
+if (isset($_POST['order'])) {
+    // Sanitize and validate user inputs
+    $name = filter_var(trim($_POST['name']), FILTER_SANITIZE_STRING);
+    $number = filter_var(trim($_POST['number']), FILTER_SANITIZE_STRING);
+    $email = filter_var(trim($_POST['email']), FILTER_VALIDATE_EMAIL);
+    $method = filter_var(trim($_POST['method']), FILTER_SANITIZE_STRING);
+
+    if (!$email) {
+        $message[] = 'Email không hợp lệ!';
+    }
+
+    // Build and sanitize address
+    $address = filter_var(
+        'Số nhà ' . trim($_POST['flat']) . ', ' . trim($_POST['street']) . ', ' . trim($_POST['city']) . ', ' . trim($_POST['state']) . ', ' . trim($_POST['country']) . ' - ' . trim($_POST['pin_code']),
+        FILTER_SANITIZE_STRING
+    );
+
+    // Get total products and price
+    $total_products = $_POST['total_products'] ?? 0;
+    $total_price = $_POST['total_price'] ?? 0;
+
+    // Check if the cart is not empty
     $check_cart = $conn->prepare("SELECT * FROM `cart` WHERE user_id = ?");
     $check_cart->execute([$user_id]);
 
     if ($check_cart->rowCount() > 0) {
-        // If the payment method is MoMo
         if ($method === 'momo') {
-            // Prepare payment data
-            $_SESSION['payment_data'] = [
-                'name' => $name,
-                'number' => $number,
-                'email' => $email,
-                'address' => $address,
-                'total_products' => $total_products,
-                'total_price' => $total_price
+         //9704 0000 0000 0018
+         //03/07
+         //Nguyen Van A
+            // Prepare payment data for MoMo
+            $endpoint = "https://test-payment.momo.vn/v2/gateway/api/create";
+            $partnerCode = 'MOMOBKUN20180529';
+            $accessKey = 'klm05TvNBzhg7h7j';
+            $secretKey = 'at67qH6mk8w5Y1nAyMoYKMWACiEi2bsa';
+            $orderId = time() . "";
+            $transId = $orderId;
+            $orderInfo = "Thanh toán qua MoMo";
+            $amount = $total_price; // Use dynamic total price
+            $redirectUrl = "http://localhost:8080/Phamhuythong/successful.php"; // Change to your actual success URL
+            $ipnUrl = "https://yourwebsite.com/payment_ipn.php"; // Change to your actual IPN URL
+            $extraData = "";
+
+            // Prepare the request data
+            $requestId = time() . "";
+            $requestType = "payWithATM"; // Use the appropriate request type
+            $rawHash = "accessKey=$accessKey&amount=$amount&extraData=$extraData&ipnUrl=$ipnUrl&orderId=$orderId&orderInfo=$orderInfo&partnerCode=$partnerCode&redirectUrl=$redirectUrl&requestId=$requestId&requestType=$requestType";
+            $signature = hash_hmac("sha256", $rawHash, $secretKey);
+
+            $data = [
+                'partnerCode' => $partnerCode,
+                'partnerName' => "Test",
+                "storeId" => "MomoTestStore",
+                'requestId' => $requestId,
+                'amount' => $amount,
+                'orderId' => $orderId,
+                'orderInfo' => $orderInfo,
+                'redirectUrl' => $redirectUrl,
+                'ipnUrl' => $ipnUrl,
+                'lang' => 'vi',
+                'extraData' => $extraData,
+                'requestType' => $requestType,
+                'signature' => $signature
             ];
-            // Redirect to MoMo payment processing page
-            header('location:init_payment.php');
-            exit();
+
+            // Execute the POST request to MoMo
+            $result = execPostRequest($endpoint, json_encode($data));
+            $jsonResult = json_decode($result, true);
+
+            // Redirect to MoMo payment URL
+            if (isset($jsonResult['payUrl'])) {
+                // Insert order with transId set to the orderId for MoMo payments
+                $insert_order = $conn->prepare("INSERT INTO `orders` (user_id, name, number, email, method, address, total_products, total_price, transId) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $insert_order->execute([$user_id, $name, $number, $email, $method, $address, $total_products, $total_price, $transId]);
+
+                header('Location: ' . $jsonResult['payUrl']);
+                exit();
+            } else {
+                $message[] = 'Có lỗi xảy ra với MoMo. Vui lòng thử lại!';
+                $errorMessage = json_encode($jsonResult); 
+                  echo "<script>console.log($errorMessage);</script>";
+
+
+            }
         } else {
             // Insert order for other payment methods
-            $insert_order = $conn->prepare("INSERT INTO `orders` (user_id, name, number, email, method, address, total_products, total_price) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-            $insert_order->execute([$user_id, $name, $number, $email, $method, $address, $total_products, $total_price]);
+            try {
+                // For other payment methods, transId will be NULL
+                $insert_order = $conn->prepare("INSERT INTO `orders` (user_id, name, number, email, method, address, total_products, total_price, transId) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL)");
+                $insert_order->execute([$user_id, $name, $number, $email, $method, $address, $total_products, $total_price]);
 
-            $delete_cart = $conn->prepare("DELETE FROM `cart` WHERE user_id = ?");
-            $delete_cart->execute([$user_id]);
+                // Clear the cart after successful order
+                $delete_cart = $conn->prepare("DELETE FROM `cart` WHERE user_id = ?");
+                $delete_cart->execute([$user_id]);
 
-            $message[] = 'Đặt hàng thành công!';
+                $message[] = 'Đặt hàng thành công!';
+            } catch (PDOException $e) {
+                error_log($e->getMessage()); // Log the error for debugging
+                $message[] = 'Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại!';
+            }
         }
     } else {
         $message[] = 'Giỏ hàng của bạn đang trống!';
     }
 }
-?>
 
+function execPostRequest($url, $data)
+{
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+        'Content-Type: application/json',
+        'Content-Length: ' . strlen($data))
+    );
+    curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+    // Execute post
+    $result = curl_exec($ch);
+    // Close connection
+    curl_close($ch);
+    return $result;
+}
+
+// HTML and other parts of your code follow here...
+
+?>
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -97,7 +181,7 @@ if (isset($_POST['order'])) {
          <p> <?= htmlspecialchars($fetch_cart['name']); ?> <span>(<?= '$'.htmlspecialchars($fetch_cart['price']).' x '. htmlspecialchars($fetch_cart['quantity']); ?>)</span> </p>
       <?php
             }
-         }else{
+         } else {
             echo '<p class="empty">Giỏ hàng của bạn đang trống!</p>';
          }
       ?>
@@ -119,53 +203,56 @@ if (isset($_POST['order'])) {
          </div>
          <div class="inputBox">
             <span>Email :</span>
-            <input type="email" name="email" placeholder="Nhập email của bạn" class="box" maxlength="50" required>
+            <input type="email" name="email" placeholder="Nhập email của bạn" class="box" required>
          </div>
          <div class="inputBox">
             <span>Phương thức thanh toán :</span>
             <select name="method" class="box" required>
-               <option value="cash on delivery">Thanh toán khi nhận hàng</option>
-               <option value="credit card">Thẻ tín dụng</option>
-               <option value="momo">Momo</option>
-               <option value="paypal">Paypal</option>
-               <option value="Vnpay">Vnpay</option>
+               <option value="cod">Thanh toán khi nhận hàng</option>
+               <option value="momo">MoMo</option>
             </select>
          </div>
          <div class="inputBox">
-            <span>Địa chỉ 01 :</span>
-            <input type="text" name="flat" placeholder="Ví dụ: số nhà" class="box" maxlength="50" required>
+            <span>Số nhà :</span>
+            <input type="text" name="flat" placeholder="Số nhà" class="box" required>
          </div>
          <div class="inputBox">
-            <span>Địa chỉ 02 :</span>
-            <input type="text" name="street" placeholder="Ví dụ: tên đường" class="box" maxlength="50" required>
+            <span>Đường :</span>
+            <input type="text" name="street" placeholder="Đường" class="box" required>
          </div>
          <div class="inputBox">
             <span>Thành phố :</span>
-            <input type="text" name="city" placeholder="Ví dụ: Hà Nội" class="box" maxlength="50" required>
+            <input type="text" name="city" placeholder="Thành phố" class="box" required>
          </div>
          <div class="inputBox">
-            <span>Tỉnh/Thành phố :</span>
-            <input type="text" name="state" placeholder="Ví dụ: Hà Nội" class="box" maxlength="50" required>
+            <span>Tỉnh :</span>
+            <input type="text" name="state" placeholder="Tỉnh" class="box" required>
          </div>
          <div class="inputBox">
             <span>Quốc gia :</span>
-            <input type="text" name="country" placeholder="Ví dụ: Việt Nam" class="box" maxlength="50" required>
+            <input type="text" name="country" placeholder="Quốc gia" class="box" required>
          </div>
          <div class="inputBox">
-            <span>Mã bưu chính :</span>
-            <input type="number" min="0" name="pin_code" placeholder="Ví dụ: 123456" min="0" max="999999" onkeypress="if(this.value.length == 6) return false;" class="box" required>
+            <span>Mã bưu điện :</span>
+            <input type="text" name="pin_code" placeholder="Mã bưu điện" class="box" required>
          </div>
       </div>
 
-      <input type="submit" name="order" class="btn <?= ($grand_total > 1) ? '' : 'disabled'; ?>" value="Đặt hàng">
+      <button type="submit" name="order" class="btn">Đặt hàng</button>
+
+      <?php
+      if (!empty($message)) {
+          foreach ($message as $msg) {
+              echo '<div class="message">' . htmlspecialchars($msg) . '</div>';
+          }
+      }
+      ?>
 
    </form>
 
 </section>
 
 <?php include 'components/footer.php'; ?>
-
-<script src="js/script.js"></script>
 
 </body>
 </html>
