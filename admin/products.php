@@ -132,6 +132,28 @@ if(isset($_GET['delete'])){
             <span>Chi tiết sản phẩm (bắt buộc)</span>
             <textarea name="details" placeholder="Nhập chi tiết sản phẩm" class="box" required maxlength="500" cols="30" rows="10"></textarea>
          </div>
+         <div class="inputBox">
+    <span>Danh mục sản phẩm (bắt buộc)</span>
+    <select name="category" class="box" required>
+        <option value="" disabled selected>Chọn danh mục</option>
+        <?php
+        // Truy vấn các danh mục khác nhau từ bảng products
+        $select_categories = $conn->prepare("SELECT DISTINCT category FROM `products`");
+        $select_categories->execute();
+
+        if($select_categories->rowCount() > 0){
+            while($fetch_category = $select_categories->fetch(PDO::FETCH_ASSOC)){
+        ?>
+        <option value="<?= $fetch_category['category']; ?>"><?= $fetch_category['category']; ?></option>
+        <?php
+            }
+        } else {
+            echo '<option value="" disabled>Không có danh mục</option>';
+        }
+        ?>
+    </select>
+</div>
+
       </div>
       
       <input type="submit" value="Thêm sản phẩm" class="btn" name="add_product">

@@ -94,45 +94,24 @@ include 'components/wishlist_cart.php';
 
    <div class="swiper-wrapper">
 
-   <a href="category.php?category=may-tinh-xach-tay" class="swiper-slide slide">
-      <img src="images/icon-1.png" alt="">
-      <h3>Máy tính xách tay</h3>
+   <?php
+     // Truy vấn các danh mục khác nhau từ bảng products
+     $select_categories = $conn->prepare("SELECT DISTINCT category FROM `products`");
+     $select_categories->execute();
+     
+     if($select_categories->rowCount() > 0){
+        while($fetch_category = $select_categories->fetch(PDO::FETCH_ASSOC)){
+   ?>
+   <a href="category.php?category=<?= $fetch_category['category']; ?>" class="swiper-slide slide">
+      <img src="images/<?= strtolower($fetch_category['category']); ?>.png" alt="">
+      <h3><?= $fetch_category['category']; ?></h3>
    </a>
-
-   <a href="category.php?category=tivi" class="swiper-slide slide">
-      <img src="images/icon-2.png" alt="">
-      <h3>Tivi</h3>
-   </a>
-
-   <a href="category.php?category=may-anh" class="swiper-slide slide">
-      <img src="images/icon-3.png" alt="">
-      <h3>Máy ảnh</h3>
-   </a>
-
-   <a href="category.php?category=chuot" class="swiper-slide slide">
-      <img src="images/icon-4.png" alt="">
-      <h3>Chuột</h3>
-   </a>
-
-   <a href="category.php?category=tu-lanh" class="swiper-slide slide">
-      <img src="images/icon-5.png" alt="">
-      <h3>Tủ lạnh</h3>
-   </a>
-
-   <a href="category.php?category=may-giat" class="swiper-slide slide">
-      <img src="images/icon-6.png" alt="">
-      <h3>Máy giặt</h3>
-   </a>
-
-   <a href="category.php?category=dien-thoai-thong-minh" class="swiper-slide slide">
-      <img src="images/icon-7.png" alt="">
-      <h3>Điện thoại thông minh</h3>
-   </a>
-
-   <a href="category.php?category=dong-ho" class="swiper-slide slide">
-      <img src="images/icon-8.png" alt="">
-      <h3>Đồng hồ</h3>
-   </a>
+   <?php
+        }
+     } else {
+        echo '<p class="empty">Không có danh mục nào!</p>';
+     }
+   ?>
 
    </div>
 
@@ -141,6 +120,7 @@ include 'components/wishlist_cart.php';
    </div>
 
 </section>
+
 
 
 <section class="home-products">

@@ -41,6 +41,11 @@ if(!isset($admin_id)){
          <p><?= $fetch_profile['name']; ?></p>
          <a href="update_profile.php" class="btn">Cập nhật hồ sơ</a>
       </div>
+      <div class="box">
+        <h3>Quản lý danh mục</h3>
+        <p>Thêm, sửa, xóa danh mục</p>
+        <a href="manage_categories.php" class="btn">Quản lý danh mục</a>
+    </div>
 
       <div class="box">
          <?php
@@ -128,7 +133,10 @@ if(!isset($admin_id)){
          <p>Thông điệp mới</p>
          <a href="messages.php" class="btn">Xem thông điệp</a>
       </div>
+    </div>
+    <div class="box-container">
 
+    
       <div style="
     display: flex; 
     flex-wrap: no-warp; 
@@ -250,7 +258,7 @@ if(!isset($admin_id)){
 </div>
 </div>
 
-
+</div>
 
 
 

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Máy chủ: 127.0.0.1
--- Thời gian đã tạo: Th10 05, 2024 lúc 11:44 AM
+-- Thời gian đã tạo: Th10 12, 2024 lúc 10:37 AM
 -- Phiên bản máy phục vụ: 10.4.32-MariaDB
 -- Phiên bản PHP: 8.0.30
 
@@ -79,6 +79,13 @@ CREATE TABLE `messages` (
   `message` varchar(500) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Đang đổ dữ liệu cho bảng `messages`
+--
+
+INSERT INTO `messages` (`id`, `user_id`, `name`, `email`, `number`, `message`) VALUES
+(1, 4, 'Thong Thong Thong', 'xobas66544@albarulo.com', '5435334', 'Web hay quá');
+
 -- --------------------------------------------------------
 
 --
@@ -123,27 +130,28 @@ CREATE TABLE `products` (
   `image_01` varchar(100) NOT NULL,
   `image_02` varchar(100) NOT NULL,
   `image_03` varchar(100) NOT NULL,
-  `name_no_accent` varchar(255) DEFAULT NULL
+  `name_no_accent` varchar(255) DEFAULT NULL,
+  `category` varchar(100) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Đang đổ dữ liệu cho bảng `products`
 --
 
-INSERT INTO `products` (`id`, `name`, `details`, `price`, `image_01`, `image_02`, `image_03`, `name_no_accent`) VALUES
-(1, 'Apple iPhone 14 Pro', 'Màn hình 6.1 inch, Super Retina XDR, Chip A16 Bionic, 48MP Camera chính, Pin 3200mAh, Face ID, 5G, IP68 chống nước.', 1200000, 'iPhone-14-thumb-tim-1-600x600.jpg', 'iPhone-14-plus-thumb-xanh-1-600x600.jpg', 'iPhone-14-thumb-tim-1-600x600.jpg', 'Apple iPhone 14 Pro'),
-(2, 'Samsung Galaxy S23 Ultra', 'Màn hình 6.8 inch, Dynamic AMOLED 2X, Chip Snapdragon 8 Gen 2, Camera chính 200MP, Pin 5000mAh, hỗ trợ bút S-Pen, IP68.', 1300000, 'home-img-1.png', 'iPhone-14-thumb-tim-1-600x600.jpg', 'iPhone-14-plus-thumb-xanh-1-600x600.jpg', 'Samsung Galaxy S23 Ultra'),
-(5, 'Tủ lạnh LG Inverter 600L', 'Dung tích 600 lít, công nghệ làm lạnh Inverter tiết kiệm điện, ngăn đá trên, công nghệ khử mùi Nano Carbon.', 9000000, 'tu-lanh-lg-gv-b212wb-1-600x600.jpg', 'product-319618-011223-045624-600x600.jpg', 'tu-lanh-lg-d22mb_1620557793.jpg', 'Tu lanh LG Inverter 600L'),
-(6, 'Tủ lạnh Samsung Family Hub 680L', 'Tủ lạnh thông minh với màn hình cảm ứng Family Hub, dung tích 680 lít, công nghệ làm lạnh đa chiều, thiết kế 4 cửa hiện đại.', 250000, 'tu-lanh-lg-gv-b212wb-1-600x600.jpg', 'product-319618-011223-045624-600x600.jpg', 'tu-lanh-lg-d22mb_1620557793.jpg', 'Tu lanh Samsung Family Hub 680L'),
-(7, 'Máy giặt Electrolux 9kg', 'Máy giặt cửa trước, công nghệ Inverter, chế độ giặt hơi nước diệt khuẩn, lồng giặt 9kg, tốc độ quay 1200 vòng/phút.', 600000, 'may-git-lng-ngang-coex-inverter-85kg-fw---80cw1408igb_728eda25.png', 'may-giat-aqua-inverter-9-5-kg-aqd-a952j-bk-0-600x600.jpg', '10055164-may-giat-electrolux-inverter-ewf1024m3sb-1.jpg', 'May giat Electrolux 9kg'),
-(8, 'Máy giặt LG AI DD 10kg', 'Máy giặt thông minh với AI phân tích loại vải, công nghệ Inverter, tốc độ quay 1400 vòng/phút, lồng giặt 10kg.', 750000, 'may-giat-aqua-inverter-9-5-kg-aqd-a952j-bk-0-600x600.jpg', 'may-git-lng-ngang-coex-inverter-85kg-fw---80cw1408igb_728eda25.png', '10055164-may-giat-electrolux-inverter-ewf1024m3sb-1.jpg', 'May giat LG AI DD 10kg'),
-(9, 'Tivi OLED Sony 55 inch', 'Tivi OLED 4K Ultra HD, kích thước 55 inch, hỗ trợ HDR, Dolby Vision, âm thanh vòm Dolby Atmos, hệ điều hành Android TV.', 12000000, 'smart-tivi-32-inch-darling-32hd959t2.jpg', '1691806865786-tivi-xiaomi-a-series-43-inch-8.jpg', 'smart-tivi-darling-32hd946t2.jpg', 'Tivi OLED Sony 55 inch'),
-(11, 'Điều hòa Daikin 12000 BTU Inverter', 'Điều hòa 1 chiều Inverter tiết kiệm điện, công suất 12000 BTU, chế độ làm lạnh nhanh, lọc không khí bằng ion plasma.', 50000000, 'dieu-hoa-sanaky-snk-12icmf.webp', 'dieu-hoa-treo-tuong-daikin-1.jpg', 'dieu-hoa-1-chieu-panasonic-n12wkh-8m_1582359815.jpg', 'ieu hoa Daikin 12000 BTU Inverter'),
-(12, 'Điều hòa Panasonic 18000 BTU Inverter', 'Điều hòa 2 chiều Inverter tiết kiệm điện, công suất 18000 BTU, chế độ làm lạnh nhanh, tích hợp công nghệ Nanoe-G lọc không khí.', 150000000, 'dieu-hoa-treo-tuong-daikin-1.jpg', 'dieu-hoa-sanaky-snk-12icmf.webp', 'dieu-hoa-1-chieu-panasonic-n12wkh-8m_1582359815.jpg', 'ieu hoa Panasonic 18000 BTU Inverter'),
-(17, 'Tivi Toshiba 50 inch', 'Tivi LED Full HD, kích thước 50 inch, hỗ trợ HDR, Dolby Audio, thiết kế mỏng, kết nối đa dạng.', 6000000, '1691806865786-tivi-xiaomi-a-series-43-inch-8.jpg', 'smart-tivi-32-inch-darling-32hd959t2.jpg', 'smart-tivi-darling-32hd946t2.jpg', 'Tivi Toshiba 50 inch'),
-(18, 'Điều hòa LG 9000 BTU Inverter', 'Điều hòa 1 chiều Inverter, công suất 9000 BTU, chế độ làm lạnh nhanh, tiết kiệm điện, hoạt động êm ái.', 45000000, 'dieu-hoa-1-chieu-panasonic-n12wkh-8m_1582359815.jpg', 'dieu-hoa-sanaky-snk-12icmf.webp', 'dieu-hoa-treo-tuong-daikin-1.jpg', 'ieu hoa LG 9000 BTU Inverter'),
-(20, 'Lò vi sóng Sharp 23L', 'Lò vi sóng dung tích 23 lít, chế độ nướng và vi sóng, thiết kế nhỏ gọn, dễ sử dụng, công suất 800W.', 15000000, 'lovisongconuong20lrolerrm3223h.webp', 'sharp-r-205vn-s-20-lit-020223-111427-600x600.jpg', 'naxf0a.webp', 'Lo vi song Sharp 23L'),
-(21, 'Lò vi sóng Samsung 32L', 'Lò vi sóng dung tích 32 lít, chế độ nướng và vi sóng, thiết kế hiện đại, công suất 1000W, có chức năng rã đông.', 2200000, 'naxf0a.webp', 'sharp-r-205vn-s-20-lit-020223-111427-600x600.jpg', 'lovisongconuong20lrolerrm3223h.webp', 'Lo vi song Samsung 32L');
+INSERT INTO `products` (`id`, `name`, `details`, `price`, `image_01`, `image_02`, `image_03`, `name_no_accent`, `category`) VALUES
+(1, 'Apple iPhone 14 Pro', 'Màn hình 6.1 inch, Super Retina XDR, Chip A16 Bionic, 48MP Camera chính, Pin 3200mAh, Face ID, 5G, IP68 chống nước.', 1200000, 'iPhone-14-thumb-tim-1-600x600.jpg', 'iPhone-14-plus-thumb-xanh-1-600x600.jpg', 'iPhone-14-thumb-tim-1-600x600.jpg', 'Apple iPhone 14 Pro', 'Điện thoại'),
+(2, 'Samsung Galaxy S23 Ultra', 'Màn hình 6.8 inch, Dynamic AMOLED 2X, Chip Snapdragon 8 Gen 2, Camera chính 200MP, Pin 5000mAh, hỗ trợ bút S-Pen, IP68.', 1300000, 'home-img-1.png', 'iPhone-14-thumb-tim-1-600x600.jpg', 'iPhone-14-plus-thumb-xanh-1-600x600.jpg', 'Samsung Galaxy S23 Ultra', 'Điện thoại'),
+(5, 'Tủ lạnh LG Inverter 600L', 'Dung tích 600 lít, công nghệ làm lạnh Inverter tiết kiệm điện, ngăn đá trên, công nghệ khử mùi Nano Carbon.', 9000000, 'tu-lanh-lg-gv-b212wb-1-600x600.jpg', 'product-319618-011223-045624-600x600.jpg', 'tu-lanh-lg-d22mb_1620557793.jpg', 'Tu lanh LG Inverter 600L', 'Tủ lạnh'),
+(6, 'Tủ lạnh Samsung Family Hub 680L', 'Tủ lạnh thông minh với màn hình cảm ứng Family Hub, dung tích 680 lít, công nghệ làm lạnh đa chiều, thiết kế 4 cửa hiện đại.', 2500000, 'tu-lanh-lg-gv-b212wb-1-600x600.jpg', 'product-319618-011223-045624-600x600.jpg', 'tu-lanh-lg-d22mb_1620557793.jpg', 'Tu lanh Samsung Family Hub 680L', 'Tủ lạnh'),
+(7, 'Máy giặt Electrolux 9kg', 'Máy giặt cửa trước, công nghệ Inverter, chế độ giặt hơi nước diệt khuẩn, lồng giặt 9kg, tốc độ quay 1200 vòng/phút.', 60000000, 'may-git-lng-ngang-coex-inverter-85kg-fw---80cw1408igb_728eda25.png', 'may-giat-aqua-inverter-9-5-kg-aqd-a952j-bk-0-600x600.jpg', '10055164-may-giat-electrolux-inverter-ewf1024m3sb-1.jpg', 'May giat Electrolux 9kg', 'Máy giặt'),
+(8, 'Máy giặt LG AI DD 10kg', 'Máy giặt thông minh với AI phân tích loại vải, công nghệ Inverter, tốc độ quay 1400 vòng/phút, lồng giặt 10kg.', 7500000, 'may-giat-aqua-inverter-9-5-kg-aqd-a952j-bk-0-600x600.jpg', 'may-git-lng-ngang-coex-inverter-85kg-fw---80cw1408igb_728eda25.png', '10055164-may-giat-electrolux-inverter-ewf1024m3sb-1.jpg', 'May giat LG AI DD 10kg', 'Máy giặt'),
+(9, 'Tivi OLED Sony 55 inch', 'Tivi OLED 4K Ultra HD, kích thước 55 inch, hỗ trợ HDR, Dolby Vision, âm thanh vòm Dolby Atmos, hệ điều hành Android TV.', 12000000, 'smart-tivi-32-inch-darling-32hd959t2.jpg', '1691806865786-tivi-xiaomi-a-series-43-inch-8.jpg', 'smart-tivi-darling-32hd946t2.jpg', 'Tivi OLED Sony 55 inch', 'Tivi'),
+(11, 'Điều hòa Daikin 12000 BTU Inverter', 'Điều hòa 1 chiều Inverter tiết kiệm điện, công suất 12000 BTU, chế độ làm lạnh nhanh, lọc không khí bằng ion plasma.', 50000000, 'dieu-hoa-sanaky-snk-12icmf.webp', 'dieu-hoa-treo-tuong-daikin-1.jpg', 'dieu-hoa-1-chieu-panasonic-n12wkh-8m_1582359815.jpg', 'ieu hoa Daikin 12000 BTU Inverter', 'Điều hòa'),
+(12, 'Điều hòa Panasonic 18000 BTU Inverter', 'Điều hòa 2 chiều Inverter tiết kiệm điện, công suất 18000 BTU, chế độ làm lạnh nhanh, tích hợp công nghệ Nanoe-G lọc không khí.', 150000000, 'dieu-hoa-treo-tuong-daikin-1.jpg', 'dieu-hoa-sanaky-snk-12icmf.webp', 'dieu-hoa-1-chieu-panasonic-n12wkh-8m_1582359815.jpg', 'ieu hoa Panasonic 18000 BTU Inverter', 'Điều hòa'),
+(17, 'Tivi Toshiba 50 inch', 'Tivi LED Full HD, kích thước 50 inch, hỗ trợ HDR, Dolby Audio, thiết kế mỏng, kết nối đa dạng.', 6000000, '1691806865786-tivi-xiaomi-a-series-43-inch-8.jpg', 'smart-tivi-32-inch-darling-32hd959t2.jpg', 'smart-tivi-darling-32hd946t2.jpg', 'Tivi Toshiba 50 inch', 'Tivi'),
+(18, 'Điều hòa LG 9000 BTU Inverter', 'Điều hòa 1 chiều Inverter, công suất 9000 BTU, chế độ làm lạnh nhanh, tiết kiệm điện, hoạt động êm ái.', 45000000, 'dieu-hoa-1-chieu-panasonic-n12wkh-8m_1582359815.jpg', 'dieu-hoa-sanaky-snk-12icmf.webp', 'dieu-hoa-treo-tuong-daikin-1.jpg', 'ieu hoa LG 9000 BTU Inverter', 'Điều hòa'),
+(20, 'Lò vi sóng Sharp 23L', 'Lò vi sóng dung tích 23 lít, chế độ nướng và vi sóng, thiết kế nhỏ gọn, dễ sử dụng, công suất 800W.', 15000000, 'lovisongconuong20lrolerrm3223h.webp', 'sharp-r-205vn-s-20-lit-020223-111427-600x600.jpg', 'naxf0a.webp', 'Lo vi song Sharp 23L', 'Lò vi sóng'),
+(21, 'Lò vi sóng Samsung 32L', 'Lò vi sóng dung tích 32 lít, chế độ nướng và vi sóng, thiết kế hiện đại, công suất 1000W, có chức năng rã đông.', 2200000, 'naxf0a.webp', 'sharp-r-205vn-s-20-lit-020223-111427-600x600.jpg', 'lovisongconuong20lrolerrm3223h.webp', 'Lo vi song Samsung 32L', 'Lò vi sóng');
 
 -- --------------------------------------------------------
 
@@ -248,7 +256,7 @@ ALTER TABLE `cart`
 -- AUTO_INCREMENT cho bảng `messages`
 --
 ALTER TABLE `messages`
-  MODIFY `id` int(100) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(100) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT cho bảng `orders`
